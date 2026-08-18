@@ -5,12 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "intentengine"
 version = "0.1.0"
-description = "A local-first CLI tool that analyzes YouTube history(search and watch history), playlist and subscriptions via Gemini to help shift toward intentional viewing."
+description = "A local-first CLI tool that analyzes YouTube history, playlists, and subscriptions via Gemini to shift toward intentional viewing."
 requires-python = ">=3.10"
 dependencies = [
     "google-genai",
     "rich",
     "python-dotenv",
+    "youtube-transcript-api",
+    "scrapetube",
 ]
 
 [tool.hatch.build.targets.wheel]
