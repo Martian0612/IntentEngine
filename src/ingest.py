@@ -78,13 +78,13 @@ def load_csv_file(filepath: Path) -> list:
 
     return rows
 
-
 def load_csv_directory(directory: Path) -> list:
-    """Load and combine every .csv file in `directory`. Used only for
-    playlists/ — filenames there are user-defined and unpredictable.
-    Do NOT reuse for subscriptions/ or comments/, which have fixed
-    filenames (see module docstring). Returns [] if the directory or
-    any CSVs are missing."""
+    """
+    Load every .csv file in `directory`, returning a list of (filename, rows) tuples.
+    Used exclusively for playlists/ to preserve the filename, which acts as the 
+    playlist name for downstream metadata extraction in preprocess.py.
+    Returns [] if the directory or CSVs are missing.
+    """
     if not directory.exists():
         print(f"  [missing] {directory} — returning empty list")
         return []
@@ -94,14 +94,13 @@ def load_csv_directory(directory: Path) -> list:
         print(f"  [empty] {directory} — no .csv files found")
         return []
 
-    combined_rows = []
+    results = []
     for csv_file in csv_files:
         rows = load_csv_file(csv_file)
         print(f"  [loaded] {csv_file.name}: {len(rows)} row(s)")
-        combined_rows.extend(rows)
+        results.append((csv_file.name, rows))
 
-    return combined_rows
-
+    return results
 
 def load_history() -> dict:
     """Load watch/search history. Raises if BOTH are empty — the
@@ -145,22 +144,31 @@ def load_all_data() -> dict:
         "comments": comments,
     }
 
-
 if __name__ == "__main__":
-    # Standalone test: confirms ingest.py reads the real data/ folder
-    # correctly before anything downstream depends on it.
+    # Standalone test to confirm directory reads.
     print("=== IntentEngine ingest.py — standalone test run ===\n")
 
     result = load_all_data()
 
     print("\n=== Summary ===")
     for key, records in result.items():
-        print(f"{key}: {len(records)} record(s)")
+        if key == "playlists":
+            total_rows = sum(len(rows) for _, rows in records)
+            print(f"{key}: {len(records)} file(s), {total_rows} total row(s)")
+        else:
+            print(f"{key}: {len(records)} record(s)")
 
     print("\n=== Sample record from each non-empty category ===")
     for key, records in result.items():
-        if records:
+        if key == "playlists":
+            for filename, rows in records:
+                if rows:
+                    print(f"\n--- playlists/{filename} (first row) ---")
+                    print(rows[0])
+                else:
+                    print(f"\n--- playlists/{filename}: (empty file) ---")
+        elif records:
             print(f"\n--- {key} (first record) ---")
             print(records[0])
         else:
-            print(f"\n--- {key}: (empty, nothing to sample) ---")
+            print(f"\n--- {key}: (empty, nothing to sample) ---")            
